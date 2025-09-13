@@ -1,0 +1,553 @@
+
+📘 Express.js Notes with Code Examples
+======================================
+
+1. Routing
+----------
+- Basic Routing:
+    app.get('/', (req,res) => res.send("Hello Express"))
+    app.get('/about', (req,res) => res.send("About Page"))
+    app.get('/contact', (req,res) => res.send("Contact Page"))
+
+- Dynamic Routing:
+    app.get('/user/:username', (req,res) => {
+        const { username } = req.params
+        res.send(`Welcome ${username}`)
+    })
+
+- Query Params:
+    app.get('/search', (req,res) => {
+        const { keyword } = req.query
+        res.send(`Searching for ${keyword}`)
+    })
+
+- Catch-all Route:
+    app.use((req, res) => {
+        res.status(404).send("Sorry, page does not exist")
+    })
+
+2. Controllers & Routers
+-------------------------
+- Controller: Functions in a separate file (controller.js)
+- Router: Modular routes using express.Router()
+
+Example:
+    import express from "express"
+    import { userLogin, userSignIn } from "./controller.js"
+    const router = express.Router()
+    router.get('/signin', userSignIn)
+    router.get('/login', userLogin)
+    app.use('/user', router)
+
+3. HTTP Methods
+---------------
+app.get('/', (req,res) => res.send("GET Request"))
+app.post('/user', (req,res) => res.json({ message: "Created" }))
+app.put('/user/:id', (req,res) => res.json({ message: "Updated" }))
+app.delete('/user/:id', (req,res) => res.json({ message: "Deleted" }))
+
+4. Validation in Routes
+-----------------------
+app.get('/data/:id', (req,res) => {
+    const { id } = req.params
+    if(!/^\d+$/.test(id)){
+        return res.status(400).json({ error: "id must be numeric" })
+    }
+    res.json({ id })
+})
+
+5. Middleware
+-------------
+- Application-level:
+    app.use((req,res,next) => { console.log("Start"); next() })
+
+- Route-specific:
+    app.use('/welcome',(req,res,next)=>{ console.log(Date.now()); next() })
+
+- Error-handling:
+    app.use((err,req,res,next)=>{
+        console.error(err.message)
+        res.status(500).send("Internal Server Error")
+    })
+
+6. Template Engine (EJS)
+-------------------------
+app.set('view engine','ejs')
+app.get('/',(req,res)=> res.render('index',{ userName:"Balaji" }))
+
+7. Static Files
+---------------
+app.use('/data', express.static('public'))
+
+8. Form Handling
+----------------
+app.use(express.urlencoded({ extended: true }))
+const upload = multer()
+app.use(upload.array())
+
+9. MongoDB Integration
+----------------------
+- Save:
+    const person = new Person({ name, age, email })
+    await person.save()
+
+- Update:
+    await Person.findByIdAndUpdate(id, { age: 23 })
+
+- Delete:
+    await Person.findByIdAndDelete(id)
+
+10. Cookies
+-----------
+app.use(cookieParser())
+res.cookie("name","express-app")
+res.clearCookie("name")
+
+11. Sessions
+------------
+app.use(session({
+    secret:"sample-secret",
+    resave:false,
+    saveUninitialized:false
+}))
+
+12. Authentication
+------------------
+- Register (with bcrypt):
+    const hash = await bcrypt.hash(password,10)
+    users.push({ username, password: hash })
+
+- Login (with bcrypt & jwt):
+    const token = jwt.sign({username}, process.env.JWT_SECRET)
+    res.json({ token })
+
+- Protect route:
+    const token = req.header("Authorization")
+    jwt.verify(token, process.env.JWT_SECRET)
+
+13. REST APIs
+-------------
+- Get all products:
+    app.get('/api/products',(req,res)=> res.json({ products }))
+
+- Get single product:
+    app.get('/api/products/:id',(req,res)=>{
+        const product = products.find(p => p.id === Number(req.params.id))
+        if(!product) return res.status(404).json({ message: "Not found" })
+        res.json({ product })
+    })
+
+- Create product:
+    app.post('/api/products',(req,res)=>{
+        const newProduct = { ...req.body, id: Date.now() }
+        res.status(201).json(newProduct)
+    })
+
+-------------------------------------
+📂 Suggested Directory Structure
+-------------------------------------
+express-app/
+├── server.js
+├── config/db.js
+├── controllers/
+│   ├── userController.js
+│   ├── productController.js
+│   └── authController.js
+├── models/
+│   ├── Person.js
+│   └── User.js
+├── routes/
+│   ├── userRoutes.js
+│   ├── productRoutes.js
+│   └── authRoutes.js
+├── middleware/
+│   ├── authMiddleware.js
+│   └── errorHandler.js
+├── views/
+│   ├── index.ejs
+│   └── dashboard.ejs
+├── public/
+│   ├── css/
+│   ├── js/
+│   └── images/
+└── utils/logger.js
+
+-------------------------------------
+✅ Best Practices
+-------------------------------------
+- Place express.json() before routes
+- Use try-catch in async DB calls
+- Store secrets in .env (dotenv)
+- Never save plain passwords
+- Use helmet, cors, rate-limit for security
+
+
+
+---------Routing 
+ app.get('/',(req,res)=>{
+    res.send("Hello Express I am Balaji")
+})
+app.get('/about',(req,res)=>{
+    res.send("This is about the about")
+})
+
+app.get('/contact',(req,res)=>{
+    res.send("This is about the contact")
+})
+
+
+---------dynamic routing
+app.get('/user/:username',(req,res)=>{
+    const user = req.params.username;
+    res.send(`Welcome ${user}`)
+})
+
+app.get("/search",(req,res)=>{
+    const data = req.query.keyword;
+    res.send(`Searching for the ${data}`)
+})
+
+-----controller in sample.js
+app.get('/user/login',userLogin)
+app.get('/user/signin',userSignIn)
+-------rotes 
+import express from "express";
+import { userLogin, userSignIn } from "./controller.js";
+
+const router = express.Router()
+
+router.get('/signin',userSignIn)
+router.get('/login',userLogin)
+
+export default router
+
+
+-------http methods
+app.get('/',(req,res)=>{
+    res.send(`Welcome To Express Js`)
+})
+
+app.post('/user',(req,res)=>{
+    const {name,email} = req.body;
+    res.json({
+        message:`The ${name} and ${email} created successfully`
+    })
+})
+
+app.put('/user/:id',(req,res)=>{
+    const userId = req.params.id
+    const {name,email} = req.body
+    res.json({
+        message:`User ${userId} updated to ${name},${email}`
+    })
+})
+
+app.delete('/user/:id',(req,res)=>{
+    const userId = req.params.id
+    res.json({
+        message:`The user with id ${userId} deleted successfully`
+    })
+})
+
+
+----- dynamic data getting using the http methods
+app.get('/data/:name/:id',(req,res)=>{
+    const {name,id} = req.params
+    res.json({
+        id,name
+    })
+})
+
+
+---
+app.use('/user',router)
+app.use(express.json())
+----
+
+
+--
+app.get('/data/:name/:id', (req, res) => {   // :id must be digits only
+  const { name, id } = req.params;   
+  if(!/^\d+$/.test(id)){
+    return res.status(400).json({ error: "id must be numeric" })
+  }                                                                    // destructure route params
+  res.json({
+    id,
+    name
+  });
+});
+
+---
+app.get('/data/:name/:id', (req, res) => {   // :id must be digits only
+  const { name, id } = req.params;   
+  if(!/^\d+$/.test(id)){
+    return res.status(400).json({ error: "id must be numeric" })
+  }             // destructure route params
+  res.json({
+    id,
+    name
+  });
+});
+
+//catch -all invalid route
+// Catch-all for any HTTP method
+app.use((req, res) => {
+  res.status(404).send("Sorry, this page does not exist");
+});
+
+
+--middleware
+
+app.use('/welcome',(req,res,next)=>{
+  console.log("A request recieved at "+ Date.now())
+  next()
+})
+app.get('/welcome',(req,res)=>{
+    res.send(`Welcome To Express Js`)
+})
+
+
+-------
+app.use((req,res,next)=>{
+  console.log("Start")
+  res.on('finish',()=>{
+    console.log("End")
+  })
+  next()
+})
+
+----
+app.get('/error',()=>{
+  throw new Error('This is the test error')
+})
+
+app.use((err,req,res,next)=>{
+  console.error(err.message)
+  res.send('INternal server Error')
+})
+
+-------
+// set6 EJS as the view engine
+app.set('view engine','ejs')
+
+app.get('/',(req,res)=>{
+  const userName = "Balaji";
+  res.render('index',{userName})
+})
+
+---handling static files
+app.use('/data',express.static('public'))
+
+----form handling 
+const upload = multer()  //multer module
+app.use(express.urlencoded({extended:true}));
+app.use(upload.array())
+
+----connect to mongodb
+"mongodb+srv://<db_username>:<db_password>@cluster0.jndbx6h.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+
+/saving data in db
+app.post('/person',express.json(), async (req,res)=>{
+    const {email,name,age} = req.body;
+    const newPerson = new Person({
+        name,age,email
+    })
+    await newPerson.save()
+    console.log(newPerson)
+    res.send("Person Added")
+})
+
+// updating data
+app.put('/person',express.json(), async (req,res)=>{
+    const {id} = req.body;
+    const personData = await Person.findOne(id,{age:"23"})
+    // await personData.save()
+    res.send("Person updated")
+})
+
+//deleting data from DB
+app.delete('/person/:id',async (req,res)=>{
+    const {id} = req.params
+    await Person.findByIdAndDelete(id)
+    res.send('User Deleted')
+
+})
+
+----cookie
+app.use(cookieParser());
+
+app.get("/", (req, res) => {
+  res.cookie("name", "express-app");
+  res.send("Hello Express");
+});
+
+app.get("/fetch", (req, res) => {
+  console.log(req.cookies);
+  res.send("API Called")
+});
+app.get('/remove',(req,res)=>{
+    res.clearCookie('name')
+    res.send("Cookie deleted")
+})
+
+----sessionDB
+app.use(session({
+    secret:'sample',
+    resave:false,
+    saveUninitialized:false
+}))
+
+-----session auth
+app.use(express.json())
+app.use(cookieParser())
+app.use(session({
+    secret:'smaple-secret',
+    resave:false,
+    saveUninitialized:false
+}))
+
+const users = []
+const Port = 3000;
+
+
+// Register route
+app.post("/register", (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).send("Username and password are required");
+  }
+
+  // Check if user already exists
+  const exists = users.find((u) => u.username === username);
+  if (exists) {
+    return res.status(400).send("User already exists");
+  }
+
+  users.push({ username, password });
+  console.log("Registered users:", users);
+
+  res.send("User registered successfully");
+});
+
+// Login route
+app.post("/login", (req, res) => {
+  const { username, password } = req.body;
+
+  const user = users.find((u) => u.username === username);
+
+  if (!user || user.password !== password) {
+    return res.status(401).send("Not authorized");
+  }
+
+  req.session.user = user; // store user in session
+  res.send("User logged in successfully");
+});
+
+// Dashboard (protected route)
+app.get("/dashboard", (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).send("Unauthorized");
+  }
+  res.send(`Welcome, ${req.session.user.username}`);
+});
+
+// Logout route
+app.post("/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) return res.status(500).send("Error logging out");
+    res.send("User logged out successfully");
+  });
+});
+
+
+---------Authentication
+app.use(express.json())
+app.use(cookieParser())
+app.use(session({
+    secret:'smaple-secret',
+    resave:false,
+    saveUninitialized:false
+}))
+
+const users = []
+
+app.post("/register", async(req, res) => {
+  const { username, password } = req.body;
+  const hashPassword = await bcrypt.hash(password,10)
+
+  if (!username || !password) {
+    return res.status(400).send("Username and password are required");
+  }
+
+  // Check if user already exists
+  const exists = users.find((u) => u.username === username);
+  if (exists) {
+    return res.status(400).send("User already exists");
+  }
+  users.push({ username, password:hashPassword });
+  console.log("Registered users:", users);
+
+  res.send("User registered successfully");
+});
+
+// Login route
+app.post("/login", async(req, res) => {
+  const { username, password } = req.body;
+
+  const user = users.find((u) => u.username === username);
+
+  if (!user || !(await bcrypt.compare(password,user.password))) {
+    return res.status(401).send("Not authorized");
+  }
+  const token = jwt.sign({username},'test#secret')
+  res.json({token})
+  res.send("User logged in successfully");
+});
+
+
+app.get("/dashboard", (req, res) => {
+  const token = req.header('Authorization')
+  const decodedToken = jwt.verify(token,'test#secret')
+  if(decodedToken.username){
+    res.send(`Welcome ,${decodedToken.username}`)
+  }else{
+    res.send('Access Denied')
+  }
+});
+
+----------rest apis
+//get all products
+app.get("/api/products", (req, res) => {
+  const products = [
+    { id: 1, name: "laptop", price: 1000 },
+    { id: 2, name: "Mobile", price: 2000 },
+    { id: 3, name: "computer", price: 3000 },
+  ];
+  res.status(200).json({ products });
+});
+
+//single product
+app.get("/api/products/:id", (req, res) => {
+  const products = [
+    { id: 1, name: "laptop", price: 1000 },
+    { id: 2, name: "Mobile", price: 2000 },
+    { id: 3, name: "computer", price: 3000 },
+  ];
+  const product = products.find((e) => e.id === Number(req.params.id));
+  if (!product) {
+    return res.status(404).json({
+      message: "product not found",
+    });
+  }
+  res.status(200).json({ product });
+});
+
+// create a new product
+app.post("/api/products", (req, res) => {
+  const newProduct = req.body;
+  newProduct.id = Date.now();
+  res.status(200).json(newProduct);
+});
+
+
